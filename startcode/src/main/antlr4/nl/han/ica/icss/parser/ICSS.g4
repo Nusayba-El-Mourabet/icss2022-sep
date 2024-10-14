@@ -51,7 +51,7 @@ stylerule: tagSelector OPEN_BRACE declaration+ CLOSE_BRACE;
 tagSelector: ID_IDENT | LOWER_IDENT | CLASS_IDENT;
 declaration: property COLON  (expression |  variableReference) | SEMICOLON ;
 property: LOWER_IDENT;
-expression: PIXELSIZE | TRUE | FALSE | PIXELSIZE | PERCENTAGE |SCALAR | COLOR ;
+expression: PIXELSIZE | TRUE | FALSE | PIXELSIZE | PERCENTAGE |SCALAR | COLOR | expression operation expression | variableReference operation expression;
 operation: PLUS | MIN | MUL;
 variableassignment: variableReference ASSIGNMENT_OPERATOR  expression SEMICOLON;
 variableReference:VAR_IDENT;
