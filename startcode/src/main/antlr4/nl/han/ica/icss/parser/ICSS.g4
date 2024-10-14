@@ -25,6 +25,7 @@ ID_IDENT: '#' [a-z0-9\-]+;
 CLASS_IDENT: '.' [a-z0-9\-]+;
 
 //General identifiers
+VAR_IDENT: [A-Z][a-zA-Z0-9]*;
 LOWER_IDENT: [a-z] [a-z0-9\-]*;
 CAPITAL_IDENT: [A-Z] [A-Za-z0-9_]*;
 
@@ -45,5 +46,15 @@ ASSIGNMENT_OPERATOR: ':=';
 
 
 //--- PARSER: ---
-stylesheet: EOF;
+stylesheet: variableassignment* stylerule+  ;
+stylerule: tagSelector OPEN_BRACE declaration+ CLOSE_BRACE;
+tagSelector: ID_IDENT | LOWER_IDENT | CLASS_IDENT;
+declaration: property COLON  (expression |  variableReference) | SEMICOLON ;
+property: LOWER_IDENT;
+expression: PIXELSIZE | TRUE | FALSE | PIXELSIZE | PERCENTAGE |SCALAR | COLOR ;
+operation: PLUS | MIN | MUL;
+variableassignment: variableReference ASSIGNMENT_OPERATOR  expression SEMICOLON;
+variableReference:VAR_IDENT;
+//p{width: 10px;} --> voor een dropdown van tree, gebruik je ASTListenener
 
+//expression: PIXELSIZE #pixelSize| TRUE | FALSE | PIXELSIZE | PERCENTAGE |SCALAR | COLOR #color;
