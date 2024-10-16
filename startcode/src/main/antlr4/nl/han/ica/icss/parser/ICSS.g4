@@ -51,10 +51,15 @@ stylerule: tagSelector OPEN_BRACE declaration+ CLOSE_BRACE;
 tagSelector: ID_IDENT | LOWER_IDENT | CLASS_IDENT;
 declaration: property COLON  (expression |  variableReference) | SEMICOLON ;
 property: LOWER_IDENT;
-expression: PIXELSIZE | TRUE | FALSE | PIXELSIZE | PERCENTAGE |SCALAR | COLOR | expression operation expression | variableReference operation expression;
+expression: partial_expression | partial_expression operation partial_expression | variableReference operation partial_expression;
+partial_expression: PIXELSIZE #pixelSize| TRUE #true | FALSE #false | PERCENTAGE #percentage |SCALAR #scalar | COLOR #color;
 operation: PLUS | MIN | MUL;
 variableassignment: variableReference ASSIGNMENT_OPERATOR  expression SEMICOLON;
 variableReference:VAR_IDENT;
+
+
+
+
 //p{width: 10px;} --> voor een dropdown van tree, gebruik je ASTListenener
 
 //expression: PIXELSIZE #pixelSize| TRUE | FALSE | PIXELSIZE | PERCENTAGE |SCALAR | COLOR #color;
