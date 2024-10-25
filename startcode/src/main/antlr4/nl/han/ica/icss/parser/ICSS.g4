@@ -47,20 +47,13 @@ ASSIGNMENT_OPERATOR: ':=';
 
 
 //--- PARSER: ---
-stylesheet: variableassignment* stylerule+  ;
+//--- PARSER: ---
+stylesheet: stylerule+;
 stylerule: tagSelector OPEN_BRACE declaration+ CLOSE_BRACE;
 tagSelector: ID_IDENT | LOWER_IDENT | CLASS_IDENT;
-declaration: property COLON  (expression |  variableReference) | SEMICOLON ;
+declaration: property COLON expression SEMICOLON;
 property: LOWER_IDENT;
-expression:  expression operation partial_expression |partial_expression | variableReference;
-partial_expression: PIXELSIZE #pixelSize| TRUE #true | FALSE #false | PERCENTAGE #percentage |SCALAR #scalar | COLOR #color;
-operation: PLUS | MIN | MUL;
-variableassignment: variableReference ASSIGNMENT_OPERATOR  expression SEMICOLON;
-variableReference:VAR_IDENT;
-
-
-
-
+expression: PIXELSIZE #pixelSize| TRUE #true | FALSE #false | PERCENTAGE #percentage |SCALAR #scalar | COLOR #color;
 //p{width: 10px;} --> voor een dropdown van tree, gebruik je ASTListenener
 
 //expression: PIXELSIZE #pixelSize| TRUE | FALSE | PIXELSIZE | PERCENTAGE |SCALAR | COLOR #color;
