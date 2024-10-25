@@ -64,7 +64,7 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void enterTagSelector(ICSSParser.TagSelectorContext ctx) {
-        TagSelector selector = new TagSelector("TAG");
+        TagSelector selector = new TagSelector(ctx.getText());
         currentContainer.push(selector);
     }
 
@@ -82,21 +82,97 @@ public class ASTListener extends ICSSBaseListener {
 
     @Override
     public void exitDeclaration(ICSSParser.DeclarationContext ctx) {
-        Declaration declaration = (Declaration)currentContainer.pop();
+        Declaration declaration = (Declaration) currentContainer.pop();
         currentContainer.peek().addChild(declaration);
     }
 
-//    @Override
-//    public void enterExpression(ICSSParser.ExpressionContext ctx) {
-//       Expression expression = new Expression
-//    }
+    @Override
+    public void enterProperty(ICSSParser.PropertyContext ctx) {
+        PropertyName property = new PropertyName(ctx.getText());
+        currentContainer.push(property);
+    }
 
-    //    @Override
-//    public void enterPixelSize(ICSSParser.PixelSizeContext ctx){
-//        PixelLiteral literal = new PixelLiteral();
-//
-//    }
+    @Override
+    public void exitProperty(ICSSParser.PropertyContext ctx) {
+        PropertyName property = (PropertyName) currentContainer.pop();
+        currentContainer.peek().addChild(property);
+    }
 
+
+    @Override
+    public void enterPixelSize(ICSSParser.PixelSizeContext ctx) {
+        PixelLiteral pixelLiteral = new PixelLiteral(Integer.parseInt(ctx.getText().replace("px", "")));
+        currentContainer.push(pixelLiteral);
+    }
+
+    @Override
+    public void exitPixelSize(ICSSParser.PixelSizeContext ctx) {
+        PixelLiteral pixelLiteral = (PixelLiteral) currentContainer.pop();
+        currentContainer.peek().addChild(pixelLiteral);
+    }
+
+    @Override
+    public void enterTrue(ICSSParser.TrueContext ctx) {
+        BoolLiteral trueLiteral = new BoolLiteral(true);
+        currentContainer.push(trueLiteral);
+    }
+
+    @Override
+    public void exitTrue(ICSSParser.TrueContext ctx) {
+        BoolLiteral trueLiteral = (BoolLiteral) currentContainer.pop();
+        currentContainer.peek().addChild(trueLiteral);
+    }
+
+    @Override
+    public void enterFalse(ICSSParser.FalseContext ctx) {
+        BoolLiteral falseLiteral = new BoolLiteral(false);
+        currentContainer.push(falseLiteral);
+    }
+
+    @Override
+    public void exitFalse(ICSSParser.FalseContext ctx) {
+        BoolLiteral falseLiteral = (BoolLiteral) currentContainer.pop();
+        currentContainer.peek().addChild(falseLiteral);
+    }
+
+    @Override
+    public void enterPercentage(ICSSParser.PercentageContext ctx) {
+        int percentageValue = Integer.parseInt(ctx.getText().replace("%", ""));
+        PercentageLiteral percentageLiteral = new PercentageLiteral(percentageValue);
+        currentContainer.push(percentageLiteral);
+    }
+
+    @Override
+    public void exitPercentage(ICSSParser.PercentageContext ctx) {
+        PercentageLiteral percentageLiteral = (PercentageLiteral) currentContainer.pop();
+        currentContainer.peek().addChild(percentageLiteral);
+    }
+
+    @Override
+    public void enterScalar(ICSSParser.ScalarContext ctx) {
+        int scalarValue = Integer.parseInt(ctx.getText());
+        ScalarLiteral scalarLiteral = new ScalarLiteral(scalarValue);
+        currentContainer.push(scalarLiteral);
+    }
+
+    @Override
+    public void exitScalar(ICSSParser.ScalarContext ctx) {
+        ScalarLiteral scalarLiteral = (ScalarLiteral) currentContainer.pop();
+        currentContainer.peek().addChild(scalarLiteral);
+    }
+
+    @Override
+    public void enterColor(ICSSParser.ColorContext ctx) {
+        String colorCode = ctx.getText();
+        ColorLiteral colorLiteral = new ColorLiteral(colorCode);
+        currentContainer.push(colorLiteral);
+    }
+
+    @Override
+    public void exitColor(ICSSParser.ColorContext ctx) {
+        ColorLiteral colorLiteral = (ColorLiteral) currentContainer.pop();
+        currentContainer.peek().addChild(colorLiteral);
+    }
 
 
 }
