@@ -51,9 +51,20 @@ ASSIGNMENT_OPERATOR: ':=';
 stylesheet: variableassignment* stylerule+  ;
 stylerule: tagSelector OPEN_BRACE declaration+ CLOSE_BRACE;
 tagSelector: ID_IDENT | LOWER_IDENT | CLASS_IDENT;
-declaration: property COLON  (expression | variableReference) SEMICOLON;
+declaration: property COLON  expression SEMICOLON ;
 property: LOWER_IDENT;
-expression: partial_expression | variableReference;
-partial_expression: PIXELSIZE #pixelSize| TRUE #true | FALSE #false | PERCENTAGE #percentage |SCALAR #scalar | COLOR #color;
+
+expression: |expression MUL expression
+            |expression PLUS expression
+            |expression MIN expression
+            |partial_expression
+            |variableReference;
+partial_expression: PIXELSIZE #pixelSize
+                    | TRUE #true
+                    | FALSE #false
+                    | PERCENTAGE #percentage
+                    |SCALAR #scalar
+                    | COLOR #color;
 variableassignment: variableReference ASSIGNMENT_OPERATOR  expression SEMICOLON;
 variableReference:VAR_IDENT;
+

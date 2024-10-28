@@ -83,6 +83,7 @@ public class ASTListener extends ICSSBaseListener {
     @Override
     public void exitDeclaration(ICSSParser.DeclarationContext ctx) {
         Declaration declaration = (Declaration) currentContainer.pop();
+
         currentContainer.peek().addChild(declaration);
     }
 
@@ -173,6 +174,7 @@ public class ASTListener extends ICSSBaseListener {
         ColorLiteral colorLiteral = (ColorLiteral) currentContainer.pop();
         currentContainer.peek().addChild(colorLiteral);
     }
+
     @Override
     public void enterVariableassignment(ICSSParser.VariableassignmentContext ctx) {
         VariableAssignment variableAssignment = new VariableAssignment();
@@ -184,6 +186,7 @@ public class ASTListener extends ICSSBaseListener {
         VariableAssignment variableAssignment = (VariableAssignment) currentContainer.pop();
         currentContainer.peek().addChild(variableAssignment);
     }
+
     @Override
     public void enterVariableReference(ICSSParser.VariableReferenceContext ctx) {
         VariableReference variableReference = new VariableReference(ctx.getText());
@@ -196,6 +199,23 @@ public class ASTListener extends ICSSBaseListener {
         currentContainer.peek().addChild(variableReference);
     }
 
+    //Operations
+    @Override
+    public void enterExpression(ICSSParser.ExpressionContext ctx) {
+        if (ctx.PLUS() != null) {
+            currentContainer.push(new AddOperation());
+        } else if (ctx.MIN() != null) {
+            currentContainer.push(new SubtractOperation());
+        } else if (ctx.MUL() != null) {
+            currentContainer.push(new MultiplyOperation());
+        }
+    }
 
-
+    @Override
+    public void exitExpression(ICSSParser.ExpressionContext ctx) {
+        if (ctx.PLUS() != null || ctx.MIN() != null || ctx.MUL() != null) {
+            Operation operation = (Operation) currentContainer.pop();
+            currentContainer.peek().addChild(operation);
+        }
+    }
 }
