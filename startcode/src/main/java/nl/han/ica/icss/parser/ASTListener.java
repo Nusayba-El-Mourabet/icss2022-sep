@@ -63,6 +63,30 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override
+    public void enterIdSelector(ICSSParser.IdSelectorContext ctx) {
+        IdSelector selector = new IdSelector(ctx.getText());
+        currentContainer.push(selector);
+    }
+
+    @Override
+    public void exitIdSelector(ICSSParser.IdSelectorContext ctx) {
+        IdSelector selector = (IdSelector) currentContainer.pop();
+        currentContainer.peek().addChild(selector);
+    }
+
+    @Override
+    public void enterClassSelector(ICSSParser.ClassSelectorContext ctx) {
+        ClassSelector selector = new ClassSelector(ctx.getText());
+        currentContainer.push(selector);
+    }
+
+    @Override
+    public void exitClassSelector(ICSSParser.ClassSelectorContext ctx) {
+        ClassSelector selector = (ClassSelector) currentContainer.pop();
+        currentContainer.peek().addChild(selector);
+    }
+
+    @Override
     public void enterTagSelector(ICSSParser.TagSelectorContext ctx) {
         TagSelector selector = new TagSelector(ctx.getText());
         currentContainer.push(selector);
@@ -217,5 +241,29 @@ public class ASTListener extends ICSSBaseListener {
             Operation operation = (Operation) currentContainer.pop();
             currentContainer.peek().addChild(operation);
         }
+    }
+
+    @Override
+    public void enterIfClause(ICSSParser.IfClauseContext ctx) {
+        IfClause ifClause = new IfClause();
+        currentContainer.push(ifClause);
+    }
+
+    @Override
+    public void exitIfClause(ICSSParser.IfClauseContext ctx) {
+        IfClause ifClause = (IfClause) currentContainer.pop();
+        currentContainer.peek().addChild(ifClause);
+    }
+
+    @Override
+    public void enterElseClause(ICSSParser.ElseClauseContext ctx) {
+        ElseClause elseClause = new ElseClause();
+        currentContainer.push(elseClause);
+    }
+
+    @Override
+    public void exitElseClause(ICSSParser.ElseClauseContext ctx) {
+        ElseClause elseClause = (ElseClause) currentContainer.pop();
+        currentContainer.peek().addChild(elseClause);
     }
 }

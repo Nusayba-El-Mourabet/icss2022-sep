@@ -49,12 +49,14 @@ ASSIGNMENT_OPERATOR: ':=';
 //--- PARSER: ---
 
 stylesheet: variableassignment* stylerule+  ;
-stylerule: tagSelector OPEN_BRACE statement+ CLOSE_BRACE;
-statement: declaration+ |variableassignment;
-tagSelector: ID_IDENT | LOWER_IDENT | CLASS_IDENT;
+stylerule: selector OPEN_BRACE statement+ CLOSE_BRACE;
+statement: declaration+ |variableassignment | ifClause;
+selector: idSelector | classSelector | tagSelector;
+idSelector: ID_IDENT;
+classSelector: CLASS_IDENT ;
+tagSelector: LOWER_IDENT;
 declaration: property COLON  expression SEMICOLON ;
 property: LOWER_IDENT;
-
 expression: |expression MUL expression
             |expression PLUS expression
             |expression MIN expression
@@ -68,4 +70,6 @@ partial_expression: PIXELSIZE #pixelSize
                     | COLOR #color;
 variableassignment: variableReference ASSIGNMENT_OPERATOR  expression SEMICOLON;
 variableReference:VAR_IDENT;
+ifClause: IF BOX_BRACKET_OPEN expression BOX_BRACKET_CLOSE OPEN_BRACE statement+ CLOSE_BRACE (elseClause)?;
+elseClause: ELSE OPEN_BRACE statement+ CLOSE_BRACE;
 
