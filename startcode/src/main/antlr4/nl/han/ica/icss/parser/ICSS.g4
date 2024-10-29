@@ -49,7 +49,8 @@ ASSIGNMENT_OPERATOR: ':=';
 //--- PARSER: ---
 
 stylesheet: variableassignment* stylerule+  ;
-stylerule: tagSelector OPEN_BRACE declaration+ CLOSE_BRACE;
+stylerule: tagSelector OPEN_BRACE statement+ CLOSE_BRACE;
+statement: declaration+ |variableassignment;
 tagSelector: ID_IDENT | LOWER_IDENT | CLASS_IDENT;
 declaration: property COLON  expression SEMICOLON ;
 property: LOWER_IDENT;
