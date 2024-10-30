@@ -1,8 +1,6 @@
 package nl.han.ica.icss.parser;
 
-import java.util.Stack;
-
-
+import nl.han.ica.datastructures.HANStack;
 import nl.han.ica.datastructures.IHANStack;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
@@ -19,19 +17,15 @@ import org.antlr.v4.runtime.ParserRuleContext;
  */
 public class ASTListener extends ICSSBaseListener {
 
-    //Accumulator attributes:
+    // Accumulator attributes:
     private AST ast;
 
-    //Use this to keep track of the parent nodes when recursively traversing the ast
-//    private IHANStack<ASTNode> currentContainer;
-    private Stack<ASTNode> currentContainer;
-
+    // Use IHANStack to keep track of the parent nodes when recursively traversing the AST
+    private IHANStack<ASTNode> currentContainer;
 
     public ASTListener() {
         ast = new AST();
-        //currentContainer = new HANStack<>();
-        currentContainer = new Stack<>();
-
+        currentContainer = new HANStack<>();
     }
 
     public AST getAST() {
@@ -107,7 +101,6 @@ public class ASTListener extends ICSSBaseListener {
     @Override
     public void exitDeclaration(ICSSParser.DeclarationContext ctx) {
         Declaration declaration = (Declaration) currentContainer.pop();
-
         currentContainer.peek().addChild(declaration);
     }
 
@@ -122,7 +115,6 @@ public class ASTListener extends ICSSBaseListener {
         PropertyName property = (PropertyName) currentContainer.pop();
         currentContainer.peek().addChild(property);
     }
-
 
     @Override
     public void enterPixelSize(ICSSParser.PixelSizeContext ctx) {
@@ -223,7 +215,7 @@ public class ASTListener extends ICSSBaseListener {
         currentContainer.peek().addChild(variableReference);
     }
 
-    //Operations
+    // Operations
     @Override
     public void enterExpression(ICSSParser.ExpressionContext ctx) {
         if (ctx.PLUS() != null) {

@@ -1,5 +1,7 @@
 package nl.han.ica.icss.checker;
 
+import nl.han.ica.datastructures.HANLinkedList;
+import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
 import nl.han.ica.icss.ast.operations.AddOperation;
@@ -8,16 +10,17 @@ import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.types.ExpressionType;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 
 public class Checker {
 
-    //    private IHANLinkedList<HashMap<String, ExpressionType>> variableTypes;
-    private LinkedList<HashMap<String, ExpressionType>> variableTypes;
+    private IHANLinkedList<HashMap<String, ExpressionType>> variableTypes;
+
+    public Checker() {
+        variableTypes = new HANLinkedList<>();
+    }
 
     public void check(AST ast) {
-        variableTypes = new LinkedList<>();
-        // variableTypes = new HANLinkedList<>();
+        variableTypes.clear();
         variableTypes.addFirst(new HashMap<>()); // Add global scope
         checkStylesheet(ast.root);
     }
@@ -43,7 +46,7 @@ public class Checker {
                 checkDeclaration((Declaration) child);
             } else if (child instanceof VariableAssignment) {
                 checkVariableAssignment((VariableAssignment) child);
-            }else if (child instanceof IfClause){
+            } else if (child instanceof IfClause) {
                 checkIfClause((IfClause) child);
             }
         }
@@ -51,7 +54,6 @@ public class Checker {
     }
 
     private void checkIfClause(IfClause ifClause) {
-        //conditie moet een boolean zijn
         ExpressionType conditionType = evaluateExpressionType(ifClause.conditionalExpression, ifClause);
         if (conditionType != ExpressionType.BOOL) {
             ifClause.setError("Condition in 'if' statement must be a boolean expression.");
@@ -155,7 +157,8 @@ public class Checker {
     }
 
     private ExpressionType lookupVariableType(String varName) {
-        for (HashMap<String, ExpressionType> scope : variableTypes) {
+        for (int i = variableTypes.getSize() - 1; i >= 0; i--) {  // Look from innermost to outermost scope
+            HashMap<String, ExpressionType> scope = variableTypes.get(i);
             if (scope.containsKey(varName)) {
                 return scope.get(varName);
             }

@@ -1,5 +1,7 @@
 package nl.han.ica.icss.transforms;
 
+import nl.han.ica.datastructures.HANLinkedList;
+import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
@@ -13,13 +15,11 @@ import java.util.LinkedList;
 
 public class Evaluator implements Transform {
 
-    //    private IHANLinkedList<HashMap<String, Literal>> variableValues;
-    private LinkedList<HashMap<String, Literal>> variableValues;
+        private IHANLinkedList<HashMap<String, Literal>> variableValues;
 
     //
     public Evaluator() {
-        //variableValues = new HANLinkedList<>();
-        variableValues = new LinkedList<>();
+        variableValues = new HANLinkedList<>();
 
     }
 
@@ -138,7 +138,8 @@ public class Evaluator implements Transform {
     }
 
     private Literal lookupVariableValue(String varName) {
-        for (HashMap<String, Literal> scope : variableValues) {
+        for (int i = variableValues.getSize() - 1; i >= 0; i--) {
+            HashMap<String, Literal> scope = variableValues.get(i);
             if (scope.containsKey(varName)) {
                 return scope.get(varName);
             }
