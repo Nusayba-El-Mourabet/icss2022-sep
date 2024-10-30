@@ -14,24 +14,40 @@ import java.util.LinkedList;
 
 public class Evaluator implements Transform {
 
-    private IHANLinkedList<HashMap<String, Literal>> variableValues;
+    //    private IHANLinkedList<HashMap<String, Literal>> variableValues;
+    private LinkedList<HashMap<String, Literal>> variableValues;
 
     //
     public Evaluator() {
         //variableValues = new HANLinkedList<>();
+        variableValues = new LinkedList<>();
+
     }
 
     @Override
     public void apply(AST ast) {
         //variableValues = new HANLinkedList<>();
+        variableValues.addFirst(new HashMap<>());
         applyStylesheet((Stylesheet) ast.root);
 
     }
 
     private void applyStylesheet(Stylesheet stylesheet) {
-        applyStylerule((Stylerule) stylesheet.getChildren().get(0));
         //bijv boom van width: 10px + 20px,  met ASTNODE AddOperation met nodes van beide 10px en 20px
         // wegwerken en tot 1 node maken
+        for (ASTNode child : stylesheet.getChildren()) {
+             if (child instanceof VariableAssignment){
+                applyVariableassignment((VariableAssignment) child);
+            }else if (child instanceof Stylerule) {
+                applyStylerule((Stylerule) child);
+            }
+        }
+        variableValues.removeFirst();
+    }
+
+    private void applyVariableassignment (VariableAssignment variableAssignment){
+        Literal evaluatedValue = (Literal) evalExpression(variableAssignment.expression);
+        variableValues.getFirst().put(variableAssignment.name.name, evaluatedValue);
     }
 
     private void applyStylerule(Stylerule stylerule) {
@@ -50,9 +66,23 @@ public class Evaluator implements Transform {
     private Expression evalExpression(Expression expression) {
         if (expression instanceof Literal) {
             return expression;
+        }else if (expression instanceof VariableReference){
+            String varName = ((VariableReference) expression).name;
+            Literal value = lookupVariableValue(varName);
+            if (value != null) {
+                return value;
+            }
+            return expression;
         }
-         return expression;
+        return expression;
     }
 
-
+    private Literal lookupVariableValue(String varName) {
+        for (HashMap<String, Literal> scope : variableValues) {
+            if (scope.containsKey(varName)) {
+                return scope.get(varName);
+            }
+        }
+        return null;
+    }
 }
