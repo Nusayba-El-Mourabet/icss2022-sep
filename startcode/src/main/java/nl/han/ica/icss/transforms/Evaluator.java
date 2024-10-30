@@ -1,6 +1,5 @@
 package nl.han.ica.icss.transforms;
 
-import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
@@ -36,16 +35,16 @@ public class Evaluator implements Transform {
         //bijv boom van width: 10px + 20px,  met ASTNODE AddOperation met nodes van beide 10px en 20px
         // wegwerken en tot 1 node maken
         for (ASTNode child : stylesheet.getChildren()) {
-             if (child instanceof VariableAssignment){
+            if (child instanceof VariableAssignment) {
                 applyVariableassignment((VariableAssignment) child);
-            }else if (child instanceof Stylerule) {
+            } else if (child instanceof Stylerule) {
                 applyStylerule((Stylerule) child);
             }
         }
         variableValues.removeFirst();
     }
 
-    private void applyVariableassignment (VariableAssignment variableAssignment){
+    private void applyVariableassignment(VariableAssignment variableAssignment) {
         Literal evaluatedValue = (Literal) evalExpression(variableAssignment.expression);
         variableValues.getFirst().put(variableAssignment.name.name, evaluatedValue);
     }
@@ -54,6 +53,9 @@ public class Evaluator implements Transform {
         for (ASTNode child : stylerule.getChildren()) {
             if (child instanceof Declaration) {
                 applyDeclaration((Declaration) child);
+            } else if (child instanceof VariableAssignment) {
+                applyVariableassignment((VariableAssignment) child);
+
             }
         }
     }
@@ -66,15 +68,73 @@ public class Evaluator implements Transform {
     private Expression evalExpression(Expression expression) {
         if (expression instanceof Literal) {
             return expression;
-        }else if (expression instanceof VariableReference){
+        } else if (expression instanceof VariableReference) {
             String varName = ((VariableReference) expression).name;
             Literal value = lookupVariableValue(varName);
             if (value != null) {
                 return value;
             }
             return expression;
+        } else if (expression instanceof Operation) {
+            return applyOperation((Operation) expression);
         }
         return expression;
+    }
+
+    private Literal applyOperation(Operation operation) {
+
+        Literal left = (Literal) evalExpression(operation.lhs);
+        Literal right = (Literal) evalExpression(operation.rhs);
+
+        if (operation instanceof AddOperation) {
+            return applyAddOperation(left, right);
+        } else if (operation instanceof SubtractOperation) {
+            return applySubtractOperation(left, right);
+        } else if (operation instanceof MultiplyOperation) {
+            return applyMultiplyOperation(left, right);
+        }
+
+        return null;
+
+    }
+
+    private Literal applyAddOperation(Literal left, Literal right) {
+        if (left instanceof PixelLiteral && right instanceof PixelLiteral) {
+            return new PixelLiteral(((PixelLiteral) left).value + ((PixelLiteral) right).value);
+        } else if (left instanceof ScalarLiteral && right instanceof ScalarLiteral) {
+            return new ScalarLiteral(((ScalarLiteral) left).value + ((ScalarLiteral) right).value);
+        } else if (left instanceof PercentageLiteral && right instanceof PercentageLiteral) {
+            return new PercentageLiteral(((PercentageLiteral) left).value + ((PercentageLiteral) right).value);
+        }
+        return null;
+    }
+
+    private Literal applySubtractOperation(Literal left, Literal right) {
+
+        if (left instanceof PixelLiteral && right instanceof PixelLiteral) {
+            return new PixelLiteral(((PixelLiteral) left).value - ((PixelLiteral) right).value);
+        } else if (left instanceof ScalarLiteral && right instanceof ScalarLiteral) {
+            return new ScalarLiteral(((ScalarLiteral) left).value - ((ScalarLiteral) right).value);
+        } else if (left instanceof PercentageLiteral && right instanceof PercentageLiteral) {
+            return new PercentageLiteral(((PercentageLiteral) left).value - ((PercentageLiteral) right).value);
+        }
+        return null;
+    }
+
+    private Literal applyMultiplyOperation(Literal left, Literal right) {
+
+        if (left instanceof ScalarLiteral && right instanceof PixelLiteral) {
+            return new PixelLiteral(((ScalarLiteral) left).value * ((PixelLiteral) right).value);
+        } else if (left instanceof PixelLiteral && right instanceof ScalarLiteral) {
+            return new PixelLiteral(((PixelLiteral) left).value * ((ScalarLiteral) right).value);
+        } else if (left instanceof ScalarLiteral && right instanceof PercentageLiteral) {
+            return new PercentageLiteral(((ScalarLiteral) left).value * ((PercentageLiteral) right).value);
+        } else if (left instanceof PercentageLiteral && right instanceof ScalarLiteral) {
+            return new PercentageLiteral(((PercentageLiteral) left).value * ((ScalarLiteral) right).value);
+        } else if (left instanceof ScalarLiteral && right instanceof ScalarLiteral) {
+            return new ScalarLiteral(((ScalarLiteral) left).value * ((ScalarLiteral) right).value);
+        }
+        return null;
     }
 
     private Literal lookupVariableValue(String varName) {
