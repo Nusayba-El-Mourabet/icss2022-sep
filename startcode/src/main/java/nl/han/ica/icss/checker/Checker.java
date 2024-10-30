@@ -43,6 +43,45 @@ public class Checker {
                 checkDeclaration((Declaration) child);
             } else if (child instanceof VariableAssignment) {
                 checkVariableAssignment((VariableAssignment) child);
+            }else if (child instanceof IfClause){
+                checkIfClause((IfClause) child);
+            }
+        }
+        variableTypes.removeFirst();
+    }
+
+    private void checkIfClause(IfClause ifClause) {
+        //conditie moet een boolean zijn
+        ExpressionType conditionType = evaluateExpressionType(ifClause.conditionalExpression, ifClause);
+        if (conditionType != ExpressionType.BOOL) {
+            ifClause.setError("Condition in 'if' statement must be a boolean expression.");
+        }
+
+        variableTypes.addFirst(new HashMap<>());
+        for (ASTNode child : ifClause.getChildren()) { // wat binnen de ifclase staat ook checken inclusief een nested ifclause
+            if (child instanceof Declaration) {
+                checkDeclaration((Declaration) child);
+            } else if (child instanceof VariableAssignment) {
+                checkVariableAssignment((VariableAssignment) child);
+            } else if (child instanceof IfClause) {
+                checkIfClause((IfClause) child);
+            }
+        }
+        variableTypes.removeFirst();
+
+        if (ifClause.elseClause != null) {
+            checkElseClause(ifClause.elseClause);
+        }
+    }
+    private void checkElseClause(ElseClause elseClause) {
+        variableTypes.addFirst(new HashMap<>());
+        for (ASTNode child : elseClause.getChildren()) {
+            if (child instanceof Declaration) {
+                checkDeclaration((Declaration) child);
+            } else if (child instanceof VariableAssignment) {
+                checkVariableAssignment((VariableAssignment) child);
+            } else if (child instanceof IfClause) {
+                checkIfClause((IfClause) child);
             }
         }
         variableTypes.removeFirst();
@@ -79,7 +118,7 @@ public class Checker {
         } else if (expression instanceof VariableReference) {
             ExpressionType varType = lookupVariableType(((VariableReference) expression).name);
             if (varType == null) {
-                parent.setError("Variable '" + ((VariableReference) expression).name + "' is not declared in this scope.");
+                expression.setError("Variable '" + ((VariableReference) expression).name + "' is not declared in this scope.");
                 return ExpressionType.UNDEFINED;
             }
             return varType;
@@ -92,13 +131,13 @@ public class Checker {
     private ExpressionType evaluateOperationType(Operation operation, ASTNode parent) {
         ExpressionType leftType = evaluateExpressionType(operation.lhs, parent);
         ExpressionType rightType = evaluateExpressionType(operation.rhs, parent);
-
+        if (leftType == ExpressionType.COLOR || rightType == ExpressionType.COLOR) { //geen kleur als input mogelijk
+            operation.setError("Cannot use color literals in any operation.");
+            return ExpressionType.UNDEFINED;
+        }
         if (operation instanceof AddOperation || operation instanceof SubtractOperation) { //verplicht beide operands van hetzelfde type
             if (leftType != rightType) {
-                parent.setError("Operands of '" + operation.getNodeLabel() + "' must be of the same type.");
-                return ExpressionType.UNDEFINED;
-            } else if (leftType == ExpressionType.COLOR || rightType == ExpressionType.COLOR) {
-                parent.setError("Cannot use color literals in '" + operation.getNodeLabel() + "' operation.");
+                operation.setError("Operands of '" + operation.getNodeLabel() + "' must be of the same type.");
                 return ExpressionType.UNDEFINED;
             }
             return leftType;
@@ -108,7 +147,7 @@ public class Checker {
             } else if (rightType == ExpressionType.SCALAR) {
                 return leftType;
             } else {
-                parent.setError("At least one operand of 'multiply' operation must be a scalar.");
+                operation.setError("At least one operand of 'multiply' operation must be a scalar.");
                 return ExpressionType.UNDEFINED;
             }
         }
