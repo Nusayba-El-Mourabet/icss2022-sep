@@ -157,7 +157,7 @@ public class Checker {
     }
 
     private ExpressionType lookupVariableType(String varName) {
-        for (int i = variableTypes.getSize() - 1; i >= 0; i--) {  // Look from innermost to outermost scope
+        for (int i = 0; i < variableTypes.getSize(); i++) {
             HashMap<String, ExpressionType> scope = variableTypes.get(i);
             if (scope.containsKey(varName)) {
                 return scope.get(varName);

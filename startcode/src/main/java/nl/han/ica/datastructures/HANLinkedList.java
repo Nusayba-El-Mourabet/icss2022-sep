@@ -2,32 +2,56 @@ package nl.han.ica.datastructures;
 
 public class HANLinkedList<T> implements IHANLinkedList<T> {
 
-    private Node header;
+    private Node<T> head;
     private int size;
 
-    private class Node {
+    private static class Node<T> {
         T data;
-        Node next;
-        Node(T data, Node next) {
+        Node<T> next;
+
+        Node(T data) {
             this.data = data;
-            this.next = next;
         }
     }
 
     public HANLinkedList() {
-        this.header = new Node(null, null); // Sentinel node
+        this.head = null;
         this.size = 0;
     }
 
     @Override
     public void addFirst(T value) {
-        header.next = new Node(value, header.next);
+        Node<T> newNode = new Node<>(value);
+        newNode.next = head;
+        head = newNode;
         size++;
     }
 
     @Override
+    public void removeFirst() {
+        if (head == null) {
+            throw new IllegalStateException("List is empty");
+        }
+        head = head.next;
+        size--;
+    }
+
+    @Override
+    public T getFirst() {
+        if (head == null) {
+            throw new IllegalStateException("List is empty");
+        }
+        return head.data;
+    }
+
+    @Override
+    public int getSize() {
+        return size;
+    }
+
+    @Override
     public void clear() {
-        header.next = null;
+        head = null;
         size = 0;
     }
 
@@ -36,27 +60,18 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
         if (index < 0 || index > size) {
             throw new IndexOutOfBoundsException("Invalid index: " + index);
         }
-
-        Node current = header;
-        for (int i = 0; i < index; i++) {
+        if (index == 0) {
+            addFirst(value);
+            return;
+        }
+        Node<T> current = head;
+        for (int i = 0; i < index - 1; i++) {
             current = current.next;
         }
-        current.next = new Node(value, current.next);
+        Node<T> newNode = new Node<>(value);
+        newNode.next = current.next;
+        current.next = newNode;
         size++;
-    }
-
-    @Override
-    public void delete(int pos) {
-        if (pos < 0 || pos >= size) {
-            throw new IndexOutOfBoundsException("Invalid index: " + pos);
-        }
-
-        Node current = header;
-        for (int i = 0; i < pos; i++) {
-            current = current.next;
-        }
-        current.next = current.next.next;
-        size--;
     }
 
     @Override
@@ -64,8 +79,7 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
         if (pos < 0 || pos >= size) {
             throw new IndexOutOfBoundsException("Invalid index: " + pos);
         }
-
-        Node current = header.next;
+        Node<T> current = head;
         for (int i = 0; i < pos; i++) {
             current = current.next;
         }
@@ -73,23 +87,19 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
     }
 
     @Override
-    public void removeFirst() {
-        if (header.next != null) {
-            header.next = header.next.next;
-            size--;
+    public void delete(int pos) {
+        if (pos < 0 || pos >= size) {
+            throw new IndexOutOfBoundsException("Invalid index: " + pos);
         }
-    }
-
-    @Override
-    public T getFirst() {
-        if (header.next == null) {
-            throw new IllegalStateException("List is empty");
+        if (pos == 0) {
+            removeFirst();
+            return;
         }
-        return header.next.data;
-    }
-
-    @Override
-    public int getSize() {
-        return size;
+        Node<T> current = head;
+        for (int i = 0; i < pos - 1; i++) {
+            current = current.next;
+        }
+        current.next = current.next.next;
+        size--;
     }
 }
