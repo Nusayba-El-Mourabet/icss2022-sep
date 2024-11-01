@@ -3,6 +3,8 @@ package nl.han.ica.icss.transforms;
 import nl.han.ica.datastructures.HANLinkedList;
 import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
+import nl.han.ica.icss.ast.literals.BoolLiteral;
+import nl.han.ica.icss.ast.Literal;
 import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
@@ -10,25 +12,23 @@ import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 
 public class Evaluator implements Transform {
 
-        private IHANLinkedList<HashMap<String, Literal>> variableValues;
+    private IHANLinkedList<HashMap<String, Literal>> variableValues;
 
-    //
     public Evaluator() {
         variableValues = new HANLinkedList<>();
-
     }
 
     @Override
     public void apply(AST ast) {
-        //variableValues = new HANLinkedList<>();
         variableValues.addFirst(new HashMap<>());
         applyStylesheet((Stylesheet) ast.root);
-
+        variableValues.removeFirst();
     }
 
     private void applyStylesheet(Stylesheet stylesheet) {
@@ -41,7 +41,6 @@ public class Evaluator implements Transform {
                 applyStylerule((Stylerule) child);
             }
         }
-        variableValues.removeFirst();
     }
 
     private void applyVariableassignment(VariableAssignment variableAssignment) {
@@ -50,19 +49,53 @@ public class Evaluator implements Transform {
     }
 
     private void applyStylerule(Stylerule stylerule) {
-        for (ASTNode child : stylerule.getChildren()) {
+        ArrayList<ASTNode> transformedBody = new ArrayList<>();
+
+        for (ASTNode child : stylerule.body) {
             if (child instanceof Declaration) {
                 applyDeclaration((Declaration) child);
+                transformedBody.add(child);
             } else if (child instanceof VariableAssignment) {
                 applyVariableassignment((VariableAssignment) child);
-
+                transformedBody.add(child);
+            } else if (child instanceof IfClause) {
+                applyIfClause((IfClause) child, transformedBody);
             }
         }
+        //if clauses weghalen en alleen correcte nodes in body zetten
+        stylerule.body.clear();
+        stylerule.body.addAll(transformedBody);
     }
 
     private void applyDeclaration(Declaration declaration) {
-        //in Declarartion class hebben we een Property en Expression
-        declaration.expression = evalExpression(declaration.expression);// om een expressie uit te rekenen
+        declaration.expression = evalExpression(declaration.expression);
+    }
+    private void applyIfClause(IfClause ifClause, List<ASTNode> transformedBody) {
+        Literal conditionResult = (Literal) evalExpression(ifClause.conditionalExpression);
+
+        if (conditionResult instanceof BoolLiteral) {
+            boolean conditionValue = ((BoolLiteral) conditionResult).value;
+
+            if (conditionValue) {
+                for (ASTNode node : ifClause.body) {
+                    if (node instanceof IfClause) {
+                        applyIfClause((IfClause) node, transformedBody); //nested ifclauses ook behandelen
+                    } else {
+                        transformedBody.add(node);
+                    }
+                }
+            } else if (ifClause.elseClause != null) {
+                // if conditie = FALSE, check of er nog een else clause behandeld moet worden
+                for (ASTNode node : ifClause.elseClause.body) {
+                    if (node instanceof IfClause) {
+                        applyIfClause((IfClause) node, transformedBody);  //nested ifclauses ook behandelen
+                    } else {
+                        transformedBody.add(node);
+                    }
+                }
+            }
+            //in het geval van eerste IFclause = FALSE en er is geen ELSE statement dan hoeft niks toegevoegd te worden
+        }
     }
 
     private Expression evalExpression(Expression expression) {
@@ -82,7 +115,6 @@ public class Evaluator implements Transform {
     }
 
     private Literal applyOperation(Operation operation) {
-
         Literal left = (Literal) evalExpression(operation.lhs);
         Literal right = (Literal) evalExpression(operation.rhs);
 
@@ -93,9 +125,7 @@ public class Evaluator implements Transform {
         } else if (operation instanceof MultiplyOperation) {
             return applyMultiplyOperation(left, right);
         }
-
         return null;
-
     }
 
     private Literal applyAddOperation(Literal left, Literal right) {
@@ -110,7 +140,6 @@ public class Evaluator implements Transform {
     }
 
     private Literal applySubtractOperation(Literal left, Literal right) {
-
         if (left instanceof PixelLiteral && right instanceof PixelLiteral) {
             return new PixelLiteral(((PixelLiteral) left).value - ((PixelLiteral) right).value);
         } else if (left instanceof ScalarLiteral && right instanceof ScalarLiteral) {
@@ -122,7 +151,6 @@ public class Evaluator implements Transform {
     }
 
     private Literal applyMultiplyOperation(Literal left, Literal right) {
-
         if (left instanceof ScalarLiteral && right instanceof PixelLiteral) {
             return new PixelLiteral(((ScalarLiteral) left).value * ((PixelLiteral) right).value);
         } else if (left instanceof PixelLiteral && right instanceof ScalarLiteral) {
